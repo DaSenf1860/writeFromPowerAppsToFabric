@@ -3,9 +3,8 @@
 You may have encountered use cases where it would be quite useful to have a direct path from your Power App which is enduser- or frontline worker- facing to an analytics backend and the reports which are built on top of that analytics backend.\
 Another use case would be, if you build meta-data driven ETL pipelines, store the metadata in Fabric and want to edit this medata via a Power App.\
 This article is about writing data from a Power App to Microsoft Fabric.
-
-![PowerAppsFabric.jpg](media/PowerAppsFabric.jpg)
-
+\
+\
 While we are waiting on the [Synapse Link from Dataverse to Fabric](https://learn.microsoft.com/en-us/power-platform/release-plan/2023wave1/data-platform/synapse-link-dataverse-enables-direct-integration-fabric-power-bi) which will be a very convenient way to replicate data from Dataverse to a Fabric Lakehouse, i want to show you two ways which are working already and one of them doesn´t even need to write data to Dataverse first.\
 \
 Here are the two approaches i want to show you:
