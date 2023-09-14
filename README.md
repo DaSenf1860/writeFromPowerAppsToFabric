@@ -1,11 +1,13 @@
 # Write data with Power App to Fabric
 
-You may have encountered use cases where it would be quite useful to have a direct path from your Power App which is enduser- or frontline worker- facing to an analytics backend and the reports which are built on top of that analytics backend.
-Another use case woulde be, if you build meta-data driven ETL pipelines, store the metadata in Fabric and want to edit this medata via a Power App.
-![PowerAppsFabric.png](media/PowerAppsFabric.png)
+You may have encountered use cases where it would be quite useful to have a direct path from your Power App which is enduser- or frontline worker- facing to an analytics backend and the reports which are built on top of that analytics backend.\
+Another use case would be, if you build meta-data driven ETL pipelines, store the metadata in Fabric and want to edit this medata via a Power App.\
 This article is about writing data from a Power App to Microsoft Fabric.
-While we are waiting on the [Synapse Link from Dataverse to Fabric](https://learn.microsoft.com/en-us/power-platform/release-plan/2023wave1/data-platform/synapse-link-dataverse-enables-direct-integration-fabric-power-bi) which will be a very convenient way to replicate data from Dataverse to a Fabric Lakehouse, i want to show you two ways which are working already and one of them doesn´t even need to write data to Dataverse first.
 
+![PowerAppsFabric.jpg](media/PowerAppsFabric.jpg)
+
+While we are waiting on the [Synapse Link from Dataverse to Fabric](https://learn.microsoft.com/en-us/power-platform/release-plan/2023wave1/data-platform/synapse-link-dataverse-enables-direct-integration-fabric-power-bi) which will be a very convenient way to replicate data from Dataverse to a Fabric Lakehouse, i want to show you two ways which are working already and one of them doesn´t even need to write data to Dataverse first.\
+\
 Here are the two approaches i want to show you:
 
 1. Using a Power Automate Flow
@@ -26,23 +28,28 @@ Now that you are all set up, let´s check out the two approaches.
 
 Let´s open the Power Apps maker in a separate tab. 
 Go to the Flows-section and create a new blank instant cloud flow and choose PowerApps as the trigger.
+
 ![PowerAppsTrigger.png](media/PowerAppsTrigger.png)
 
 Create a new step of the type "Execute a SQL query (V2)" on a SQL Server.
+
 ![ExecuteSQLquery.png](media/ExecuteSQLquery.png)
 
 To get the "SQL Server name", switch to the Fabric Warehouse and click on the gear-symbol to see its settings.
 There you can find the "connection string". Copy this value and use it as "SQL server name".
+
 ![SQLconnectionstring.png](media/SQLconnectionstring.png)
 
 For "SQL database name" use "dbo".
 For the query use the dynamic content from the Power Apps
+
 ![QuerryPowerAppsContent.png](media/QuerryPowerAppsContent.png)
 
 Let´s create a new blank canvas Power App. Create Text input fields and a button.
 Configure the button, so that "OnSelect" it runs the previously defined Flow with an INSERT-Statement.
 In my example, the name of the table in the warehouse is "table1" and it has the fields "feedback" and "timestamp".
 My "OnSelect"-Configuration looks like this:
+
 ![OnSelect.png](media/OnSelect.png)
 
 ```
@@ -52,9 +59,10 @@ WriteToFabric.Run(Concatenate("INSERT INTO table1 VALUES ('", Text(TextInput1), 
 Whenever you click the button, a new record is inserted in the table using the text in the TextInput for the "feedback" field and the current timestamp for "timestamp".
 
 To verify you can check the Fabric Warehouse. If it doesn´t work you might want to look at the Flow monitoring to debug your SQL-Statement.
+
 ![VerificationWarehouse.png](media/VerificationWarehouse.png)
 
-### Approach 2: Writing to Dataverse first and then using a Dataflow Gen 2 to transfer data from Dataverse to Fabric
+### Approach 2: Writing to Dataverse first, then using a Dataflow Gen 2 to transfer data from Dataverse to Fabric
 
 This approach is using a data connection to a table in Dataverse.
 Therefore create a new table in the tables section in Power Apps.
@@ -67,22 +75,27 @@ Collect(table1S, {feedback: Text(TextInput1), timestamp: Now()})
 ```
 
 You can see all important items here:
+
 ![Approach2PowerApp.png](media/Approach2PowerApp.png)
 
 Now the data is inserted from the Power App to the Dataverse table.
-To replicate the data to Fabric you want to switch to the Fabric experience.
+To replicate the data to Fabric you want to switch to the Fabric experience.\
+
 [Create a Dataflow Gen 2](https://learn.microsoft.com/en-us/fabric/data-factory/create-first-dataflow-gen2)
-Click on the "Get Data"-button and select Dataverse as the data source.
-Set your configurations (Note that the environment details are optional).
-In the "Choose Data"-Screen navigate to your previously created table and select it. Note that the table will have some prefix like cr07c_ and there will be additional metadata columns and not only the ones you defined.
-You should see a preview of the data.
+\
+Click on the "Get Data"-button and select Dataverse as the data source.\
+Set your configurations (Note that the environment details are optional).\
+In the "Choose Data"-Screen navigate to your previously created table and select it. Note that the table will have some prefix like cr07c_ and there will be additional metadata columns and not only the ones you defined.\
+You should see a preview of the data. THen click on "Create".
+
 ![DataFlowDatasource.png](media/DataFlowDatasource.png)
-Click on "Create".
 
 On the next screen you see the PowerQuery-Interface where you can do No-Code/Low-Code-Transformations.
 Here we can filter the columns to only derive the ones we want and rename them to get rid of the prefix.
 Next we want to set a data destination.
+
 ![PowerQuery.png](media/PowerQuery.png)
+
 Select "Warehouse" and navigate to the Warehouse and table you want to write to.
 Once set up, publish and refresh the Dataflow.
 Now the Data gets written to the Warehouse in a batch process.
